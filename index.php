@@ -6,8 +6,8 @@ $res = $json = [];
 switch ($_POST['action'])
 {
 	case 'mul':
-		$f1 = preg_split('/[\r\n]+/', $_POST['f1']);
-		$f2 = preg_split('/[\r\n]+/', $_POST['f2']);
+		$f1 = explode("\n", str_replace("\r", '', $_POST['f1']));
+		$f2 = explode("\n", str_replace("\r", '', $_POST['f2']));
 		foreach ($f1 as $s1)
 		{
 			foreach ($f2 as $s2)
@@ -57,12 +57,20 @@ switch ($_POST['action'])
 		$json['info'] = [count($res_list)];
 	break;
 	case 'diff':
-		$f1 = preg_split('/[\r\n]+/', $_POST['f1']);
-		$f2 = preg_split('/[\r\n]+/', $_POST['f2']);
+		$f1 = explode("\n", str_replace("\r", '', $_POST['f1']));
+		$f2 = explode("\n", str_replace("\r", '', $_POST['f2']));
 		$res = array_diff($f1,$f2);
 		$json['res'] = implode("\n", $res);
 		$json['info'] = [count($f1), count($f2), count($res)];
 	break;
+	case 'intersect':
+		$f1 = explode("\n", str_replace("\r", '', $_POST['f1']));
+		$f2 = explode("\n", str_replace("\r", '', $_POST['f2']));
+		$res = array_intersect($f1, $f2);
+		$json['res'] = implode("\n", $res);
+		$json['info'] = [count($f1), count($f2), count($res)];
+	break;
+	
 }
 if ($_POST['action']!='')
 {
@@ -77,7 +85,7 @@ header('Content-Type: text/html;charset=utf-8');
 <html>
 <head>
 <title>List Operations</title>
-<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+<script src="js/jquery-2.2.4.min.js"></script>
 <script>
 	$(document).ready(function(){
 		$(".submit").click(function(){
@@ -204,6 +212,19 @@ header('Content-Type: text/html;charset=utf-8');
 		<button class=submit>Запуск</button>
 	</form>
 	<p> Результат: <b><span>0</span> - <span>0</span> = <span>0</span></b> строк </p>
+	<textarea class="res" readonly=yes></textarea>
+</div>
+
+<div class="box" id="intersect" data-hint="List Intersect">
+	<p>Находит пересечение списков. Выведет элементы из первого списка, которые есть во втором списке.</p>
+	<form>
+		Первый список: <br>
+		<textarea name=f1></textarea> <br>
+		Второй список: <br>
+		<textarea name=f2></textarea> <br>
+		<button class=submit>Запуск</button>
+	</form>
+	<p> Результат: <b><span>0</span></b> строк в первом списке, <b><span>0</span></b> строк во втором списке, <b><span>0</span></b> строк в пересечении </p>
 	<textarea class="res" readonly=yes></textarea>
 </div>
 
