@@ -50,8 +50,7 @@ switch ($_POST['action'])
 			for ($i=0;$i<$max_fields;$i++)
 			{$res_list[$i][] = $pp[$i];}
 		}
-		foreach ($res_list as &$v)
-		{$v = implode("\n", $v);}
+		foreach ($res_list as &$v) $v = implode("\n", $v);
 		unset($v);
 		$json['res_list'] = $res_list;
 		$json['info'] = [count($res_list)];
@@ -59,7 +58,16 @@ switch ($_POST['action'])
 	case 'diff':
 		$f1 = explode("\n", str_replace("\r", '', $_POST['f1']));
 		$f2 = explode("\n", str_replace("\r", '', $_POST['f2']));
-		$res = array_diff($f1,$f2);
+		if ($_POST['case_insens'])
+		{
+			$x1 = $x2 = [];
+			foreach ($f1 as $v) $x1[mb_strtolower($v)] = $v;
+			foreach ($f2 as $v) $x2[mb_strtolower($v)] = $v;
+			$res = array_diff_key($x1, $x2);
+			unset($x1, $x2);
+		}
+			else
+		{$res = array_diff($f1, $f2);}
 		$json['res'] = implode("\n", $res);
 		$json['info'] = [count($f1), count($f2), count($res)];
 	break;
@@ -70,9 +78,27 @@ switch ($_POST['action'])
 		$json['res'] = implode("\n", $res);
 		$json['info'] = [count($f1), count($f2), count($res)];
 	break;
-	
+	case 'unique':
+		$f1 = explode("\n", str_replace("\r", '', $_POST['f1']));
+		$res = array_unique($f1);
+		$json['res'] = implode("\n", $res);
+		$json['info'] = [count($f1), count($res)];
+	break;
+	case 'shuffle':
+		$f1 = explode("\n", str_replace("\r", '', $_POST['f1']));
+		shuffle($f1);
+		$json['res'] = implode("\n", $f1);
+		$json['info'] = [count($f1), ];
+	break;
+	case 'merge':
+		$f1 = explode("\n", str_replace("\r", '', $_POST['f1']));
+		$f2 = explode("\n", str_replace("\r", '', $_POST['f2']));
+		$res = array_merge($f1, $f2);
+		$json['res'] = implode("\n", $res);
+		$json['info'] = [count($f1), count($f2), count($res), ];
+	break;
 }
-if ($_POST['action']!='')
+if ($_POST['action'])
 {
 	header('Content-Type: application/javascript');
 	echo json_encode($json);
@@ -210,6 +236,8 @@ header('Content-Type: text/html;charset=utf-8');
 		Что вычесть: <br>
 		<textarea name=f2></textarea> <br>
 		<button class=submit>Запуск</button>
+		<input type=checkbox name=case_insens id=case_insens value=1 />
+		<label for="case_insens">нечувствительно к регистру</label>
 	</form>
 	<p> Результат: <b><span>0</span> - <span>0</span> = <span>0</span></b> строк </p>
 	<textarea class="res" readonly=yes></textarea>
@@ -225,6 +253,42 @@ header('Content-Type: text/html;charset=utf-8');
 		<button class=submit>Запуск</button>
 	</form>
 	<p> Результат: <b><span>0</span></b> строк в первом списке, <b><span>0</span></b> строк во втором списке, <b><span>0</span></b> строк в пересечении </p>
+	<textarea class="res" readonly=yes></textarea>
+</div>
+
+<div class="box" id="unique" data-hint="List Unique">
+	<p>Возвращает только уникальные элементы из списка без потери порядка элементов.</p>
+	<form>
+		Список: <br>
+		<textarea name=f1></textarea> <br>
+		<button class=submit>Запуск</button>
+	</form>
+	<p> Результат: <b><span>0</span></b> строк, <b><span>0</span></b> строк в результате </p>
+	<textarea class="res" readonly=yes></textarea>
+</div>
+
+<div class="box" id="shuffle" data-hint="List Shuffle">
+	<p>Перемешивает список.</p>
+	<form>
+		Список: <br>
+		<textarea name=f1></textarea> <br>
+		<button class=submit>Запуск</button>
+	</form>
+	<p> Результат: <b><span>0</span></b> строк</p>
+	<textarea class="res" readonly=yes></textarea>
+</div>
+
+
+<div class="box" id="merge" data-hint="List Merge">
+	<p>Соединяет два списка в один. </p>
+	<form>
+		Первый список: <br>
+		<textarea name=f1></textarea> <br>
+		Второй список: <br>
+		<textarea name=f2></textarea> <br>
+		<button class=submit>Запуск</button>
+	</form>
+	<p> Результат: <b><span>0</span></b> строк в первом списке, <b><span>0</span></b> строк во втором списке, <b><span>0</span></b> строк в результате </p>
 	<textarea class="res" readonly=yes></textarea>
 </div>
 
